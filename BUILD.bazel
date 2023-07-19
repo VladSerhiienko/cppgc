@@ -1,5 +1,15 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@bazel_skylib//lib:selects.bzl", "selects")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_command_line_application")
+load("@build_bazel_rules_apple//apple:versioning.bzl", "apple_bundle_version")
+
+load(
+    "@rules_xcodeproj//xcodeproj:defs.bzl",
+    "top_level_target",
+    "xcodeproj",
+)
+
+package(default_visibility = ["//visibility:public"])
 
 config_setting(
     name = "is_x86_64",
@@ -190,7 +200,7 @@ PLATFORM_COPTS = select({
     "-Wno-array-bounds",
     "-Wno-class-memaccess",
     "-Wno-comments",
-    "-Wno-deprecated-declarations",
+    # "-Wno-deprecated-declarations",
     "-Wno-implicit-fallthrough",
     "-Wno-int-in-bool-context",
     "-Wno-maybe-uninitialized",
@@ -263,3 +273,32 @@ cc_test(
   ],
 )
 
+apple_bundle_version(
+    name = "CommandLineVersion",
+    build_version = "1.0",
+)
+
+objc_library(
+  name = "cppgc_sample_objc_lib",
+  srcs = ["samples/cppgc/hello-world.cc"],
+  deps = [":cppgc"]
+)
+
+macos_command_line_application(
+    name = "cppgc_sample_xcode",
+    bundle_id = "com.example.command-line",
+    infoplists = [":Info.plist"],
+    minimum_os_version = "13.0",
+    version = ":CommandLineVersion",
+    deps = [":cppgc_sample_objc_lib"],
+)
+
+xcodeproj(
+    name = "xcodeproj",
+    build_mode = "bazel",
+    project_name = "cppgc_sample_xcode",
+    tags = ["manual"],
+    top_level_targets = [
+        ":cppgc_sample_xcode",
+    ],
+)

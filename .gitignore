@@ -1,1 +1,4 @@
 bazel-*
+cppgc_sample_xcode*
+DerivedData*
+.DS_Store
